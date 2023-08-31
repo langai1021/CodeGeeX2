@@ -1,16 +1,10 @@
+import uuid
+
 from fastapi import FastAPI, Request
 from transformers import AutoTokenizer, AutoModel
 import uvicorn, json, datetime
 import torch
 import argparse
-
-try:
-    import chatglm_cpp
-    enable_chatglm_cpp = True
-except:
-    print("[WARN] chatglm-cpp not found. Install it by `pip install chatglm-cpp` for better performance. "
-          "Check out https://github.com/li-plus/chatglm.cpp for more details.")
-    enable_chatglm_cpp = False
 
 
 #获取选项        
@@ -37,10 +31,6 @@ def add_code_generation_args(parser):
         default=1,
     )
     group.add_argument(                      
-        "--cpu",
-        action="store_true",
-    )
-    group.add_argument(                      
         "--half",
         action="store_true",
     )
@@ -48,10 +38,6 @@ def add_code_generation_args(parser):
         "--quantize",
         type=int,
         default=None,
-    )
-    group.add_argument(
-        "--chatglm-cpp",
-        action="store_true",
     )
     return parser
 
@@ -127,29 +113,17 @@ LANGUAGE_TAG = {
 
 app = FastAPI()
 def device():
-    if enable_chatglm_cpp and args.chatglm_cpp:
-        print("Using chatglm-cpp to improve performance")
-        dtype = "f16" if args.half else "f32"
-        if args.quantize in [4, 5, 8]:
-            dtype = f"q{args.quantize}_0"
-        model = chatglm_cpp.Pipeline(args.model_path, dtype=dtype)
-        return model
-
-    print("chatglm-cpp not enabled, falling back to transformers")
-    if not args.cpu:
-        if not args.half:
-            model = AutoModel.from_pretrained(args.model_path, trust_remote_code=True).cuda()
-        else:
-            model = AutoModel.from_pretrained(args.model_path, trust_remote_code=True).cuda().half()
-        if args.quantize in [4, 8]:
-            print(f"Model is quantized to INT{args.quantize} format.")
-            model = model.half().quantize(args.quantize)
+    if not args.half:
+        model = AutoModel.from_pretrained(args.model_path, trust_remote_code=True, device='cuda')
     else:
-        model = AutoModel.from_pretrained(args.model_path, trust_remote_code=True)
+        model = AutoModel.from_pretrained(args.model_path, trust_remote_code=True, device='cuda').half().to("cuda")
+    if args.quantize in [4, 8]:
+        print(f"Model is quantized to INT{args.quantize} format.")
+        model = model.half().quantize(args.quantize)
 
     return model.eval()
 
-@app.post("/v1/completions")
+@app.post("/v1/chat/completions")
 async def completions(request: Request):
     global model, tokenizer
     json_post_raw = await request.json()
@@ -166,28 +140,29 @@ async def completions(request: Request):
     temperature = json_post_list.get('temperature', 0.2)
     top_k = json_post_list.get('top_k', 0)
     if lang != "None":
-        prompt = LANGUAGE_TAG[lang] + "\n" + prompt
-    if enable_chatglm_cpp and args.chatglm_cpp:
-        response = model.generate(prompt,
-                                  max_length=max_length,
-                                  do_sample=temperature > 0,
-                                  top_p=top_p,
-                                  top_k=top_k,
-                                  temperature=temperature)
-    else:
-        response = model.chat(tokenizer,
-                              prompt,
-                              max_length=max_length,
-                              top_p=top_p,
-                              top_k=top_k,
-                              temperature=temperature)
+        prompt = LANGUAGE_TAG[lang] + "\n// " + prompt
+
+    response = model.chat(tokenizer,
+                          prompt,
+                          max_length=max_length,
+                          top_p=top_p,
+                          top_k=top_k,
+                          temperature=temperature)
     now = datetime.datetime.now()
     time = now.strftime("%Y-%m-%d %H:%M:%S")
     answer = {
-        "response": response,
-        "lang": lang,
-        "status": 200,
-        "time": time
+        "id": "LLM-" + uuid.uuid1(),
+        "object": "chat.completion",
+        "created": now(),
+        "model": args.model_path,
+        "choices": [{
+            "index": 0,
+            "message": {
+                "role": "assistant",
+                "content": response,
+            },
+            "finish_reason": "stop"
+        }]
     }
     log = "[" + time + "] " + '", prompt:"' + prompt + '", response:"' + repr(response) + '"'
     print(log)
