@@ -162,20 +162,27 @@ async def completions(request: Request):
     temperature = args.temperature
     top_k = args.top_k
     if lang != "None":
-        prompt = LANGUAGE_TAG[lang] + "\n// " + prompt
+        prompt = LANGUAGE_TAG[lang] + "\n// " + prompt + "\n"
 
-    response = model.chat(tokenizer,
-                          prompt,
-                          max_length=max_length,
-                          top_p=top_p,
-                          top_k=top_k,
-                          temperature=temperature)
+    inputs = tokenizer.encode(prompt, return_tensors="pt").to(model.device)
+    outputs = model.generate(inputs,
+                             max_length=max_length,
+                             top_p=top_p,
+                             top_k=top_k,
+                             temperature=temperature)
+    response = tokenizer.decode(outputs[0])
+    # response = model.chat(tokenizer,
+    #                       prompt,
+    #                       max_length=max_length,
+    #                       top_p=top_p,
+    #                       top_k=top_k,
+    #                       temperature=temperature)
     now = datetime.datetime.now()
     time = now.strftime("%Y-%m-%d %H:%M:%S")
     answer = {
         "id": "LLM-" + str(uuid.uuid1()),
         "object": "chat.completion",
-        "created": now.timestamp() * 1000,
+        "created": int(now.timestamp() * 1000),
         "model": args.model_path,
         "choices": [{
             "index": 0,
@@ -191,39 +198,6 @@ async def completions(request: Request):
 
     return answer
 
-@app.post("/")
-async def create_item(request: Request):
-    global model, tokenizer
-    json_post_raw = await request.json()
-    json_post = json.dumps(json_post_raw)
-    json_post_list = json.loads(json_post)
-    lang = json_post_list.get('lang')
-    prompt = json_post_list.get('prompt')
-    max_length = json_post_list.get('max_length', 128)
-    top_p = json_post_list.get('top_p', 0.95)
-    temperature = json_post_list.get('temperature', 0.2)
-    top_k = json_post_list.get('top_k', 0)
-    if lang != "None":
-        prompt = LANGUAGE_TAG[lang] + "\n" + prompt
-    else:
-        response = model.chat(tokenizer,
-                              prompt,
-                              max_length=max_length,
-                              top_p=top_p,
-                              top_k=top_k,
-                              temperature=temperature)
-    now = datetime.datetime.now()
-    time = now.strftime("%Y-%m-%d %H:%M:%S")
-    answer = {
-        "response": response,
-        "lang": lang,
-        "status": 200,
-        "time": time
-    }
-    log = "[" + time + "] " + '", prompt:"' + prompt + '", response:"' + repr(response) + '"'
-    print(log)
-
-    return answer
 
 
 if __name__ == '__main__':    
