@@ -153,9 +153,9 @@ async def completions(request: Request):
     now = datetime.datetime.now()
     time = now.strftime("%Y-%m-%d %H:%M:%S")
     answer = {
-        "id": "LLM-" + uuid.uuid1(),
+        "id": "LLM-" + str(uuid.uuid1()),
         "object": "chat.completion",
-        "created": now(),
+        "created": now().timestamp() * 1000,
         "model": args.model_path,
         "choices": [{
             "index": 0,
