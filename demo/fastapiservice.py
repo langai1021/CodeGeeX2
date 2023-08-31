@@ -161,7 +161,6 @@ async def completions(request: Request):
     top_p = args.top_p
     top_k = args.top_k
     temperature = args.temperature
-    n_sample = args.n_sample
     if lang != "None":
         prompt = LANGUAGE_TAG[lang] + "\n// " + prompt + "\n"
     print("prompt:"+ prompt);
