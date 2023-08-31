@@ -163,13 +163,10 @@ async def completions(request: Request):
     n_sample = args.n_sample
     if lang != "None":
         prompt = LANGUAGE_TAG[lang] + "\n// " + prompt + "\n"
-
+    print("prompt:"+ prompt);
     inputs = tokenizer.encode(prompt, return_tensors="pt").to(model.device)
     outputs = model.generate(inputs,
-                             max_length=max_length,
-                             top_p=top_p,
-                             temperature=temperature,
-                             do_sample=True)
+                             max_length=max_length)
     response = tokenizer.decode(outputs[0])
     # response = model.chat(tokenizer,
     #                       prompt,
@@ -193,8 +190,8 @@ async def completions(request: Request):
             "finish_reason": "stop"
         }]
     }
-    log = "[" + time + "] " + '", prompt:"' + prompt + '", response:"' + repr(response) + '"'
-    print(log)
+    # log = "[" + time + "] " + '", prompt:"' + prompt + '", response:"' + repr(response) + '"'
+    print(response)
 
     return answer
 
