@@ -9,7 +9,7 @@ import argparse
 
 #获取选项        
 def add_code_generation_args(parser):
-    group = parser.add_argument_group(title="CodeGeeX2 DEMO")
+    group = parser.add_argument_group(title="LLM API")
     group.add_argument(
         "--model-path",
         type=str,
@@ -42,7 +42,7 @@ def add_code_generation_args(parser):
     group.add_argument(
         "--max-length",
         type=int,
-        default=2048
+        default=4096
     )
     group.add_argument(
         "--top-p",
@@ -187,7 +187,7 @@ async def completions(request: Request):
             "index": 0,
             "message": {
                 "role": "assistant",
-                "content": response,
+                "content": repr(response) ,
             },
             "finish_reason": "stop"
         }]
