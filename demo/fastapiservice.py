@@ -168,8 +168,9 @@ async def completions(request: Request):
     outputs = model.generate(inputs,
                              max_length=max_length,
                              top_p=top_p,
-                             N_sample=n_sample,
-                             temperature=temperature)
+                             temperature=temperature,
+                             do_sample=True,
+                             n_sample=n_sample)
     response = tokenizer.decode(outputs[0])
     # response = model.chat(tokenizer,
     #                       prompt,
