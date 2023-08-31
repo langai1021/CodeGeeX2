@@ -47,17 +47,17 @@ def add_code_generation_args(parser):
     group.add_argument(
         "--top-p",
         type=float,
-        default=0.8
+        default=0.95
     )
     group.add_argument(
-        "--top-k",
+        "--n-sample",
         type=int,
         default=20
     )
     group.add_argument(
         "--temperature",
         type=float,
-        default=0.5
+        default=0.2
     )
     return parser
 
@@ -160,13 +160,16 @@ async def completions(request: Request):
     max_length = args.max_length
     top_p = args.top_p
     temperature = args.temperature
-    top_k = args.top_k
+    n_sample = args.n_sample
     if lang != "None":
         prompt = LANGUAGE_TAG[lang] + "\n// " + prompt + "\n"
 
     inputs = tokenizer.encode(prompt, return_tensors="pt").to(model.device)
     outputs = model.generate(inputs,
-                             max_length=max_length)
+                             max_length=max_length,
+                             top_p=top_p,
+                             N_sample=n_sample,
+                             temperature=temperature)
     response = tokenizer.decode(outputs[0])
     # response = model.chat(tokenizer,
     #                       prompt,
