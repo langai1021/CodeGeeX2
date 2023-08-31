@@ -161,14 +161,15 @@ async def completions(request: Request):
     top_p = args.top_p
     top_k = args.top_k
     temperature = args.temperature
-    if lang != "None":
-        prompt = LANGUAGE_TAG[lang] + "\n// " + prompt + "\n"
+    prompt = LANGUAGE_TAG[lang] + "\n// " + prompt + "\n"
     print("prompt:"+ prompt);
     # inputs = tokenizer.encode(prompt, return_tensors="pt").to(model.device)
     # outputs = model.generate(inputs,
     #                          max_length=max_length)
     # response = tokenizer.decode(outputs[0])
     # print("response:" + response)
+    params = "max_length=" + str(max_length) + ",top_p=" + str(top_p) + ",top_k=" + str(top_k) + ",temperature=" + str(temperature)
+    print(params)
     response = model.chat(tokenizer,
                           prompt,
                           max_length=max_length,
