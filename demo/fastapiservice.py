@@ -39,6 +39,26 @@ def add_code_generation_args(parser):
         type=int,
         default=None,
     )
+    group.add_argument(
+        "--max-length",
+        type=int,
+        default=2048
+    )
+    group.add_argument(
+        "--top-p",
+        type=float,
+        default=0.8
+    )
+    group.add_argument(
+        "--top-k",
+        type=int,
+        default=20
+    )
+    group.add_argument(
+        "--temperature",
+        type=float,
+        default=0.5
+    )
     return parser
 
 LANGUAGE_TAG = {
@@ -137,10 +157,10 @@ async def completions(request: Request):
         if message['role'] == 'user':
             prompt = message['content']
             break
-    max_length = json_post_list.get('max_length', 2048)
-    top_p = json_post_list.get('top_p', 0.95)
-    temperature = json_post_list.get('temperature', 0.2)
-    top_k = json_post_list.get('top_k', 0)
+    max_length = args.max_length
+    top_p = args.top_p
+    temperature = args.temperature
+    top_k = args.top_k
     if lang != "None":
         prompt = LANGUAGE_TAG[lang] + "\n// " + prompt
 
