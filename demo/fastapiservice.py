@@ -129,7 +129,9 @@ async def completions(request: Request):
     json_post_raw = await request.json()
     json_post = json.dumps(json_post_raw)
     json_post_list = json.loads(json_post)
-    lang = "Java"
+    lang = json_post_list.get('lang')
+    if lang is None:
+        lang = "Java"
     prompt = None
     for message in json_post_list['messages']:
         if message['role'] == 'user':
@@ -183,13 +185,6 @@ async def create_item(request: Request):
     top_k = json_post_list.get('top_k', 0)
     if lang != "None":
         prompt = LANGUAGE_TAG[lang] + "\n" + prompt
-    if enable_chatglm_cpp and args.chatglm_cpp:
-        response = model.generate(prompt,
-                                  max_length=max_length,
-                                  do_sample=temperature > 0,
-                                  top_p=top_p,
-                                  top_k=top_k,
-                                  temperature=temperature)
     else:
         response = model.chat(tokenizer,
                               prompt,
