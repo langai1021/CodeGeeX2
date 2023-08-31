@@ -137,7 +137,7 @@ async def completions(request: Request):
         if message['role'] == 'user':
             prompt = message['content']
             break
-    max_length = json_post_list.get('max_length', 4096)
+    max_length = json_post_list.get('max_length', 2048)
     top_p = json_post_list.get('top_p', 0.95)
     temperature = json_post_list.get('temperature', 0.2)
     top_k = json_post_list.get('top_k', 0)
@@ -155,7 +155,7 @@ async def completions(request: Request):
     answer = {
         "id": "LLM-" + str(uuid.uuid1()),
         "object": "chat.completion",
-        "created": now().timestamp() * 1000,
+        "created": now.timestamp() * 1000,
         "model": args.model_path,
         "choices": [{
             "index": 0,
