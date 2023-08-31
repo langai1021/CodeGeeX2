@@ -188,7 +188,7 @@ async def completions(request: Request):
             "index": 0,
             "message": {
                 "role": "assistant",
-                "content": repr(response) ,
+                "content": response,
             },
             "finish_reason": "stop"
         }]
