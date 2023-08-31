@@ -50,9 +50,9 @@ def add_code_generation_args(parser):
         default=0.95
     )
     group.add_argument(
-        "--n-sample",
+        "--top-k",
         type=int,
-        default=20
+        default=0
     )
     group.add_argument(
         "--temperature",
@@ -133,13 +133,16 @@ LANGUAGE_TAG = {
 
 app = FastAPI()
 def device():
-    if not args.half:
-        model = AutoModel.from_pretrained(args.model_path, trust_remote_code=True, device='cuda')
+    if not args.cpu:
+        if not args.half:
+            model = AutoModel.from_pretrained(args.model_path, trust_remote_code=True).cuda()
+        else:
+            model = AutoModel.from_pretrained(args.model_path, trust_remote_code=True).cuda().half()
+        if args.quantize in [4, 8]:
+            print(f"Model is quantized to INT{args.quantize} format.")
+            model = model.half().quantize(args.quantize)
     else:
-        model = AutoModel.from_pretrained(args.model_path, trust_remote_code=True, device='cuda').half().to("cuda")
-    if args.quantize in [4, 8]:
-        print(f"Model is quantized to INT{args.quantize} format.")
-        model = model.half().quantize(args.quantize)
+        model = AutoModel.from_pretrained(args.model_path, trust_remote_code=True)
 
     return model.eval()
 
@@ -159,21 +162,24 @@ async def completions(request: Request):
             break
     max_length = args.max_length
     top_p = args.top_p
+    top_k = args.top_k
     temperature = args.temperature
     n_sample = args.n_sample
     if lang != "None":
         prompt = LANGUAGE_TAG[lang] + "\n// " + prompt + "\n"
     print("prompt:"+ prompt);
-    inputs = tokenizer.encode(prompt, return_tensors="pt").to(model.device)
-    outputs = model.generate(inputs,
-                             max_length=max_length)
-    response = tokenizer.decode(outputs[0])
-    # response = model.chat(tokenizer,
-    #                       prompt,
-    #                       max_length=max_length,
-    #                       top_p=top_p,
-    #                       top_k=top_k,
-    #                       temperature=temperature)
+    # inputs = tokenizer.encode(prompt, return_tensors="pt").to(model.device)
+    # outputs = model.generate(inputs,
+    #                          max_length=max_length)
+    # response = tokenizer.decode(outputs[0])
+    # print("response:" + response)
+    response = model.chat(tokenizer,
+                          prompt,
+                          max_length=max_length,
+                          top_p=top_p,
+                          top_k=top_k,
+                          temperature=temperature)
+    print("response:" + response)
     now = datetime.datetime.now()
     time = now.strftime("%Y-%m-%d %H:%M:%S")
     answer = {
@@ -191,7 +197,6 @@ async def completions(request: Request):
         }]
     }
     # log = "[" + time + "] " + '", prompt:"' + prompt + '", response:"' + repr(response) + '"'
-    print(response)
 
     return answer
 
