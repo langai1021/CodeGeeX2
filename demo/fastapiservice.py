@@ -169,8 +169,7 @@ async def completions(request: Request):
                              max_length=max_length,
                              top_p=top_p,
                              temperature=temperature,
-                             do_sample=True,
-                             n_sample=n_sample)
+                             do_sample=True)
     response = tokenizer.decode(outputs[0])
     # response = model.chat(tokenizer,
     #                       prompt,
