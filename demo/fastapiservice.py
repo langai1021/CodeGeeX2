@@ -175,7 +175,7 @@ async def completions(request: Request):
                           top_p=top_p,
                           top_k=top_k,
                           temperature=temperature)
-    print("response:" + response)
+    # print("response:" + response)
     now = datetime.datetime.now()
     time = now.strftime("%Y-%m-%d %H:%M:%S")
     answer = {
@@ -192,8 +192,8 @@ async def completions(request: Request):
             "finish_reason": "stop"
         }]
     }
-    # log = "[" + time + "] " + '", prompt:"' + prompt + '", response:"' + repr(response) + '"'
-
+    log = "[" + time + "] " + '", prompt:"' + prompt + '", response:"' + repr(response) + '"'
+    print(log)
     return answer
 
 
