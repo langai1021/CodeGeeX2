@@ -166,10 +166,7 @@ async def completions(request: Request):
 
     inputs = tokenizer.encode(prompt, return_tensors="pt").to(model.device)
     outputs = model.generate(inputs,
-                             max_length=max_length,
-                             top_p=top_p,
-                             top_k=top_k,
-                             temperature=temperature)
+                             max_length=max_length)
     response = tokenizer.decode(outputs[0])
     # response = model.chat(tokenizer,
     #                       prompt,
