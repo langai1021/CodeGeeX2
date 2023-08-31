@@ -133,16 +133,13 @@ LANGUAGE_TAG = {
 
 app = FastAPI()
 def device():
-    if not args.cpu:
-        if not args.half:
-            model = AutoModel.from_pretrained(args.model_path, trust_remote_code=True).cuda()
-        else:
-            model = AutoModel.from_pretrained(args.model_path, trust_remote_code=True).cuda().half()
-        if args.quantize in [4, 8]:
-            print(f"Model is quantized to INT{args.quantize} format.")
-            model = model.half().quantize(args.quantize)
+    if not args.half:
+        model = AutoModel.from_pretrained(args.model_path, trust_remote_code=True).cuda()
     else:
-        model = AutoModel.from_pretrained(args.model_path, trust_remote_code=True)
+        model = AutoModel.from_pretrained(args.model_path, trust_remote_code=True).cuda().half()
+    if args.quantize in [4, 8]:
+        print(f"Model is quantized to INT{args.quantize} format.")
+        model = model.half().quantize(args.quantize)
 
     return model.eval()
 
