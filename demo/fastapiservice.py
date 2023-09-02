@@ -39,26 +39,6 @@ def add_code_generation_args(parser):
         type=int,
         default=None,
     )
-    group.add_argument(
-        "--max-length",
-        type=int,
-        default=4096
-    )
-    group.add_argument(
-        "--top-p",
-        type=float,
-        default=0.95
-    )
-    group.add_argument(
-        "--top-k",
-        type=int,
-        default=0
-    )
-    group.add_argument(
-        "--temperature",
-        type=float,
-        default=0.2
-    )
     return parser
 
 LANGUAGE_TAG = {
@@ -157,10 +137,10 @@ async def completions(request: Request):
         if message['role'] == 'user':
             prompt = message['content']
             break
-    max_length = args.max_length
-    top_p = args.top_p
-    top_k = args.top_k
-    temperature = args.temperature
+    max_length = json_post_list.get('max_tokens', 1024)
+    top_p = json_post_list.get('top_p', 0.5)
+    top_k = 0
+    temperature = json_post_list.get('temperature', 0.2)
     prompt = LANGUAGE_TAG[lang] + "\n// " + prompt + "\n"
     print("prompt:"+ prompt);
     # inputs = tokenizer.encode(prompt, return_tensors="pt").to(model.device)
@@ -188,7 +168,7 @@ async def completions(request: Request):
             "index": 0,
             "message": {
                 "role": "assistant",
-                "content": response,
+                "content": response[0],
             },
             "finish_reason": "stop"
         }]
