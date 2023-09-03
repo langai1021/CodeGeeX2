@@ -157,7 +157,8 @@ async def completions(request: Request):
     print(params)
     response = None
     if isinstance(model, GPTBigCodeModel):
-        output = model.generate(prompt,
+        input = tokenizer.encode(prompt, return_tensors="pt").to(model.device)
+        output = model.forward(input,
                                   max_length=max_length,
                                   top_p=top_p,
                                   top_k=top_k,
