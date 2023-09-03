@@ -1,7 +1,7 @@
 import uuid
 
 from fastapi import FastAPI, Request
-from transformers import AutoTokenizer, AutoModel, GPTBigCodeModel
+from transformers import AutoTokenizer, AutoModel, GPT2Tokenizer, AutoModelForCausalLM
 import uvicorn, json, datetime
 import torch
 import argparse
@@ -195,6 +195,19 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser = add_code_generation_args(parser)
     args, _ = parser.parse_known_args()
-    tokenizer = AutoTokenizer.from_pretrained(args.model_path, trust_remote_code=True)
-    model = device()
+    tokenizer = None
+    model = None
+    if "WizardCoder" in args.model_path:
+        # 初始化tokenizer
+        # tokenizer = GPT2Tokenizer.from_pretrained(args.model_path)
+        # 初始化model
+        model = AutoModelForCausalLM.from_pretrained(args.model_path)
+        # 从config获取tokenizer class
+        tokenizer_class = model.config.tokenizer_class
+
+        # 初始化对应tokenizer
+        tokenizer = tokenizer_class.from_pretrained("ckpt")
+    else:
+        AutoTokenizer.from_pretrained(args.model_path, trust_remote_code=True)
+        model = device()
     uvicorn.run(app, host=args.listen, port=args.port, workers=args.workers)
