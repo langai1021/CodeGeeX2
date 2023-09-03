@@ -209,7 +209,7 @@ if __name__ == '__main__':
         tokenizer_class = model.config.tokenizer_class
 
         # 初始化对应tokenizer
-        tokenizer = tokenizer_class.from_pretrained("ckpt")
+        tokenizer = tokenizer_class.from_pretrained(args.model_path)
     else:
         AutoTokenizer.from_pretrained(args.model_path, trust_remote_code=True)
         model = device()
