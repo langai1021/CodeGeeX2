@@ -155,18 +155,12 @@ async def completions(request: Request):
     # print("response:" + response)
     params = "max_length=" + str(max_length) + ",top_p=" + str(top_p) + ",top_k=" + str(top_k) + ",temperature=" + str(temperature)
     print(params)
-    # response = model.chat(tokenizer,
-    #                       prompt,
-    #                       max_length=max_length,
-    #                       top_p=top_p,
-    #                       top_k=top_k,
-    #                       temperature=temperature)
-    response = model.generate(prompt,
-                              max_length=max_length,
-                              do_sample=temperature > 0,
-                              top_p=top_p,
-                              top_k=top_k,
-                              temperature=temperature)
+    response = model.chat(tokenizer,
+                          prompt,
+                          max_length=max_length,
+                          top_p=top_p,
+                          top_k=top_k,
+                          temperature=temperature)
     # print("response:" + response)
     now = datetime.datetime.now()
     time = now.strftime("%Y-%m-%d %H:%M:%S")
