@@ -157,12 +157,12 @@ async def completions(request: Request):
     print(params)
     response = None
     if "WizardCoder" in args.model_path:
-        output = model.generate(prompt,
+        response = model.generate(prompt,
                                     max_length=max_length,
                                     top_p=top_p,
                                     top_k=top_k,
                                     temperature=temperature)
-        response = tokenizer.decode(output[0], skip_special_tokens=True)
+        # response = tokenizer.decode(output[0], skip_special_tokens=True)
     else:
         respObj = model.chat(tokenizer,
                               prompt,
@@ -198,19 +198,13 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser = add_code_generation_args(parser)
     args, _ = parser.parse_known_args()
-    tokenizer = None
+    tokenizer = AutoTokenizer.from_pretrained(args.model_path, trust_remote_code=True)
     model = None
     if "WizardCoder" in args.model_path:
         # 初始化tokenizer
         # tokenizer = GPT2Tokenizer.from_pretrained(args.model_path)
         # 初始化model
         model = AutoModelForCausalLM.from_pretrained(args.model_path)
-        # 从config获取tokenizer class
-        tokenizer_class = model.config.tokenizer_class
-
-        # 初始化对应tokenizer
-        tokenizer = tokenizer_class.from_pretrained(args.model_path)
     else:
-        AutoTokenizer.from_pretrained(args.model_path, trust_remote_code=True)
         model = device()
     uvicorn.run(app, host=args.listen, port=args.port, workers=args.workers)
