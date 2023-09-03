@@ -144,7 +144,9 @@ async def completions(request: Request):
     top_p = json_post_list.get('top_p', 0.5)
     top_k = 0
     temperature = json_post_list.get('temperature', 0.2)
-    prompt = LANGUAGE_TAG[lang] + "\n// " + prompt + "\n"
+    if args.model_path == "THUDM/codegeex2-6b":
+        prompt = prompt.replace('\n', '\n// ')
+        prompt = LANGUAGE_TAG[lang] + "\n// " + prompt + "\n"
     print("prompt:"+ prompt);
     # inputs = tokenizer.encode(prompt, return_tensors="pt").to(model.device)
     # outputs = model.generate(inputs,
