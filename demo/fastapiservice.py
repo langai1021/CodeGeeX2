@@ -158,12 +158,7 @@ async def completions(request: Request):
     response = None
     if isinstance(model, GPTBigCodeModel):
         input = tokenizer.encode(prompt, return_tensors="pt").to(model.device)
-        output = model.forward(input,
-                                  max_length=max_length,
-                                  top_p=top_p,
-                                  top_k=top_k,
-                                  temperature=temperature,
-                                  num_return_sequences=1)
+        output = model.forward(input)
         response = tokenizer.decode(output[0], skip_special_tokens=True)
     else:
         respObj = model.chat(tokenizer,
