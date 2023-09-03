@@ -1,7 +1,7 @@
 import uuid
 
 from fastapi import FastAPI, Request
-from transformers import AutoTokenizer, AutoModel
+from transformers import AutoTokenizer, AutoModel, GPTBigCodeModel
 import uvicorn, json, datetime
 import torch
 import argparse
@@ -155,12 +155,23 @@ async def completions(request: Request):
     # print("response:" + response)
     params = "max_length=" + str(max_length) + ",top_p=" + str(top_p) + ",top_k=" + str(top_k) + ",temperature=" + str(temperature)
     print(params)
-    response = model.chat(tokenizer,
-                          prompt,
-                          max_length=max_length,
-                          top_p=top_p,
-                          top_k=top_k,
-                          temperature=temperature)
+    response = None
+    if isinstance(model, GPTBigCodeModel):
+        output = model.generate(prompt,
+                                  max_length=max_length,
+                                  top_p=top_p,
+                                  top_k=top_k,
+                                  temperature=temperature,
+                                  num_return_sequences=1)
+        response = tokenizer.decode(output[0], skip_special_tokens=True)
+    else:
+        respObj = model.chat(tokenizer,
+                              prompt,
+                              max_length=max_length,
+                              top_p=top_p,
+                              top_k=top_k,
+                              temperature=temperature)
+        response = respObj[0]
     # print("response:" + response)
     now = datetime.datetime.now()
     time = now.strftime("%Y-%m-%d %H:%M:%S")
@@ -173,7 +184,7 @@ async def completions(request: Request):
             "index": 0,
             "message": {
                 "role": "assistant",
-                "content": response[0],
+                "content": response,
             },
             "finish_reason": "stop"
         }]
