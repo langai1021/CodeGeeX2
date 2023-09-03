@@ -156,9 +156,12 @@ async def completions(request: Request):
     params = "max_length=" + str(max_length) + ",top_p=" + str(top_p) + ",top_k=" + str(top_k) + ",temperature=" + str(temperature)
     print(params)
     response = None
-    if isinstance(model, GPTBigCodeModel):
-        input = tokenizer.encode(prompt, return_tensors="pt").to(model.device)
-        output = model.forward(input)
+    if "WizardCoder" in args.model_path:
+        output = model.generate(prompt,
+                                    max_length=max_length,
+                                    top_p=top_p,
+                                    top_k=top_k,
+                                    temperature=temperature)
         response = tokenizer.decode(output[0], skip_special_tokens=True)
     else:
         respObj = model.chat(tokenizer,
